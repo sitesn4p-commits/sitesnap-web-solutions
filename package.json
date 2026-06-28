@@ -1,0 +1,13 @@
+{
+  "name": "sitesnap-web-solutions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sitesnap Web Solutions public website, backend API, and private admin panel.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch server/index.js",
+    "start": "node server/index.js"
+  }
+}

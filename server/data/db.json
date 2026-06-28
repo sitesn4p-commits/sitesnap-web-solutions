@@ -1,0 +1,162 @@
+{
+  "settings": {
+    "companyName": "Sitesnap Web Solutions",
+    "tagline": "Build. Launch. Grow.",
+    "phone": "0703720132",
+    "whatsapp": "94703720132",
+    "email": "hello@sitesnap.lk",
+    "location": "Sri Lanka",
+    "openingHours": "Mon - Sat, 9:00 AM - 6:00 PM",
+    "heroTitle": "All Your Digital Needs, In One Sharp Place.",
+    "heroLead": "We craft fast websites, web apps, ecommerce experiences, and search-ready digital systems that help businesses look premium and win better leads."
+  },
+  "stats": [
+    {
+      "label": "Projects Delivered",
+      "value": "28+"
+    },
+    {
+      "label": "Happy Clients",
+      "value": "18+"
+    },
+    {
+      "label": "Launch Support",
+      "value": "24/7"
+    }
+  ],
+  "services": [
+    {
+      "id": "service-web-design",
+      "title": "Website Design",
+      "summary": "Modern, responsive business websites with premium visuals, clear conversion paths, and mobile-first polish.",
+      "features": ["Landing pages", "Business sites", "Portfolio sites", "Speed optimization"],
+      "icon": "MonitorSmartphone"
+    },
+    {
+      "id": "service-web-apps",
+      "title": "Web Applications",
+      "summary": "Custom dashboards, booking flows, private portals, and tools built around your real workflow.",
+      "features": ["Private dashboards", "Client portals", "Custom workflows", "API integrations"],
+      "icon": "Code2"
+    },
+    {
+      "id": "service-commerce",
+      "title": "E-Commerce",
+      "summary": "Stores that make products easy to browse, buy, manage, and promote across your online channels.",
+      "features": ["Product catalogues", "Order flows", "Payment-ready UI", "Inventory-ready structure"],
+      "icon": "ShoppingBag"
+    },
+    {
+      "id": "service-seo",
+      "title": "SEO Foundations",
+      "summary": "Technical SEO, metadata, content structure, performance, and local search setup for stronger discoverability.",
+      "features": ["Metadata", "Local SEO", "Schema setup", "Performance checks"],
+      "icon": "Search"
+    },
+    {
+      "id": "service-branding",
+      "title": "Brand & Creative",
+      "summary": "Visual systems, social media assets, content layouts, and brand consistency for digital campaigns.",
+      "features": ["Brand kits", "Social posts", "Ad creatives", "UI direction"],
+      "icon": "Sparkles"
+    },
+    {
+      "id": "service-care",
+      "title": "Care Plans",
+      "summary": "Maintenance, updates, security checks, backups, and continuous improvements after launch.",
+      "features": ["Updates", "Monitoring", "Backups", "Monthly improvements"],
+      "icon": "ShieldCheck"
+    }
+  ],
+  "process": [
+    {
+      "step": "01",
+      "title": "Discover",
+      "text": "We map your goals, audience, offer, content, and conversion path before design starts."
+    },
+    {
+      "step": "02",
+      "title": "Design",
+      "text": "We create a clean, brand-aligned interface with the right visual energy and simple navigation."
+    },
+    {
+      "step": "03",
+      "title": "Build",
+      "text": "We develop responsive pages, backend features, owner tools, forms, and integrations."
+    },
+    {
+      "step": "04",
+      "title": "Launch",
+      "text": "We test performance, mobile views, contact flows, SEO basics, and hand over a maintainable system."
+    }
+  ],
+  "projects": [
+    {
+      "id": "project-bluewave",
+      "name": "BlueWave Stores",
+      "type": "E-Commerce",
+      "summary": "A sleek product catalogue and order enquiry flow for a retail business moving online.",
+      "result": "2.4x more enquiries"
+    },
+    {
+      "id": "project-avenor",
+      "name": "Avenor Labs",
+      "type": "Business Website",
+      "summary": "A technical service website with strong positioning, fast content sections, and SEO-ready pages.",
+      "result": "Fast 1.1s load"
+    },
+    {
+      "id": "project-ceylonvista",
+      "name": "CeylonVista Travel",
+      "type": "Booking Experience",
+      "summary": "A tour discovery experience with inquiry routing, WhatsApp actions, and package highlights.",
+      "result": "38% more leads"
+    }
+  ],
+  "industries": ["Startups", "Retail", "Travel", "Education", "Healthcare", "Real Estate", "Restaurants", "Professional Services"],
+  "testimonials": [
+    {
+      "name": "Naveen Perera",
+      "role": "Founder, Retail Brand",
+      "quote": "Sitesnap made the whole website process easy. The final design felt premium and customers started contacting us through WhatsApp immediately."
+    },
+    {
+      "name": "Ashini Silva",
+      "role": "Operations Lead",
+      "quote": "The private dashboard saved us time from day one. We can track enquiries and keep our content fresh without calling a developer every time."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How long does a business website take?",
+      "answer": "Most small business websites take 7 to 14 days after content and direction are confirmed. Larger websites and web apps are planned in milestones."
+    },
+    {
+      "question": "Can you build backend dashboards?",
+      "answer": "Yes. We can build private dashboards for leads, services, projects, content, users, orders, or any workflow your business needs."
+    },
+    {
+      "question": "Do you support WhatsApp enquiries?",
+      "answer": "Yes. We can connect phone calls, WhatsApp, contact forms, email notifications, and CRM-ready lead storage."
+    },
+    {
+      "question": "Will the website work on mobile?",
+      "answer": "Yes. Every Sitesnap website is designed mobile-first and checked across common screen sizes before launch."
+    }
+  ],
+  "inquiries": [
+    {
+      "id": "sample-inquiry-1",
+      "name": "Sample Lead",
+      "email": "lead@example.com",
+      "phone": "0710000000",
+      "company": "Demo Business",
+      "service": "Website Design",
+      "budget": "LKR 75,000 - 150,000",
+      "message": "I need a new website with WhatsApp enquiries and SEO basics.",
+      "status": "new",
+      "createdAt": "2026-06-28T08:30:00.000Z"
+    }
+  ],
+  "subscribers": []
+}
