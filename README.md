@@ -22,5 +22,7 @@ Set these environment values during deploy:
 - `ADMIN_USER`: admin
 - `ADMIN_PASSWORD`: choose a strong password
 - `SESSION_SECRET`: Render can generate this automatically
+- `MONGODB_URI`: your MongoDB Atlas connection string
+- `MONGODB_DB`: `sitesnap`
 
-The app uses `server/data/db.json` for local demo storage. Free hosting filesystems can reset on redeploy/restart, so connect a hosted database before using this for permanent client leads.
+If `MONGODB_URI` is missing, the app falls back to `server/data/db.json` for local demo storage.
