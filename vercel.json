@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/console",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/console/(.*)",
+      "destination": "/admin.html"
+    }
+  ]
+}

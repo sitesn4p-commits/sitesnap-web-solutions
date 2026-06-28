@@ -346,7 +346,7 @@ async function routeStatic(req, res, pathname) {
   }
 
   if (pathname === "/styles.css") {
-    return sendFile(res, path.join(root, "src", "styles.css"));
+    return sendFile(res, path.join(root, "public", "styles.css"));
   }
 
   if (pathname === "/app.js") {
