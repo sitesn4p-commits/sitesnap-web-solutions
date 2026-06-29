@@ -6,9 +6,16 @@
     "whatsapp": "94703720132",
     "email": "hello@sitesnap.lk",
     "location": "Sri Lanka",
+    "facebookUrl": "https://www.facebook.com/share/1J8YPujnnk/",
+    "instagramUrl": "https://www.instagram.com/sitesn4p?igsh=MTQzanNubmllemxzNQ==",
+    "linkedinUrl": "https://lk.linkedin.com/in/site-snap-a2570b3b0",
     "openingHours": "Mon - Sat, 9:00 AM - 6:00 PM",
     "heroTitle": "All Your Digital Needs, In One Sharp Place.",
-    "heroLead": "We craft fast websites, web apps, ecommerce experiences, and search-ready digital systems that help businesses look premium and win better leads."
+    "heroLead": "We craft fast websites, web apps, ecommerce experiences, and search-ready digital systems that help businesses look premium and win better leads.",
+    "teamLeadName": "Sathsara Bandara",
+    "teamLeadRole": "Founder / Web Strategist",
+    "teamLeadBio": "Leads project direction, client strategy, and launch quality from the first idea to the live website.",
+    "teamLeadImageUrl": ""
   },
   "stats": [
     {
@@ -158,5 +165,6 @@
       "createdAt": "2026-06-28T08:30:00.000Z"
     }
   ],
-  "subscribers": []
+  "subscribers": [],
+  "careers": []
 }

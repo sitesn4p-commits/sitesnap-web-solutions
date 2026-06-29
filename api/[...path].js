@@ -23,8 +23,15 @@ function sanitizeImage(value) {
   return "";
 }
 
+function sanitizeCv(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^data:(application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document);base64,/i.test(text) && text.length <= 2200000) return text;
+  return "";
+}
+
 function publicSiteShape(db) {
-  const { inquiries, subscribers, ...publicData } = db;
+  const { inquiries, subscribers, careers, ...publicData } = db;
   return publicData;
 }
 
@@ -42,7 +49,12 @@ async function readBody(req) {
   }
 
   const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
+  for await (const chunk of req) {
+    chunks.push(chunk);
+    if (Buffer.concat(chunks).length > 3 * 1024 * 1024) {
+      throw new Error("Request body is too large.");
+    }
+  }
   const raw = Buffer.concat(chunks).toString("utf8");
   return raw ? JSON.parse(raw) : {};
 }
@@ -160,6 +172,36 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 201, { ok: true });
     }
 
+    if (req.method === "POST" && pathname === "/api/careers") {
+      const body = await readBody(req);
+      const cvData = sanitizeCv(body.cvData);
+      const career = {
+        id: crypto.randomUUID(),
+        name: sanitize(body.name, 120),
+        email: sanitize(body.email, 160),
+        phone: sanitize(body.phone, 40),
+        role: sanitize(body.role, 120),
+        message: sanitize(body.message, 1000),
+        cvName: sanitize(body.cvName, 180),
+        cvType: sanitize(body.cvType, 160),
+        cvData,
+        status: "new",
+        createdAt: new Date().toISOString(),
+      };
+
+      if (!career.name || !career.phone || !career.cvData) {
+        return sendJson(res, 400, { message: "Name, phone, and CV are required." });
+      }
+
+      await updateDb((db) => {
+        if (!Array.isArray(db.careers)) db.careers = [];
+        db.careers.unshift(career);
+        return career;
+      });
+
+      return sendJson(res, 201, { ok: true });
+    }
+
     if (req.method === "POST" && pathname === "/api/admin/login") {
       const body = await readBody(req);
       const username = sanitize(body.username, 80);
@@ -191,16 +233,19 @@ module.exports = async function handler(req, res) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
       const db = await readDb();
-      const newLeads = db.inquiries.filter((item) => item.status === "new").length;
+      const inquiries = db.inquiries || [];
+      const careers = db.careers || [];
+      const newLeads = inquiries.filter((item) => item.status === "new").length;
       return sendJson(res, 200, {
         metrics: {
-          inquiries: db.inquiries.length,
+          inquiries: inquiries.length,
           newLeads,
-          services: db.services.length,
-          projects: db.projects.length,
-          subscribers: db.subscribers.length,
+          services: (db.services || []).length,
+          projects: (db.projects || []).length,
+          careers: careers.length,
+          subscribers: (db.subscribers || []).length,
         },
-        latestInquiries: db.inquiries.slice(0, 6),
+        latestInquiries: inquiries.slice(0, 6),
         site: publicSiteShape(db),
       });
     }
@@ -209,7 +254,14 @@ module.exports = async function handler(req, res) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
       const db = await readDb();
-      return sendJson(res, 200, { inquiries: db.inquiries });
+      return sendJson(res, 200, { inquiries: db.inquiries || [] });
+    }
+
+    if (req.method === "GET" && pathname === "/api/admin/careers") {
+      const admin = requireAdmin(req, res);
+      if (!admin) return null;
+      const db = await readDb();
+      return sendJson(res, 200, { careers: db.careers || [] });
     }
 
     const inquiryMatch = pathname.match(/^\/api\/admin\/inquiries\/([^/]+)$/);
@@ -247,6 +299,13 @@ module.exports = async function handler(req, res) {
           whatsapp: sanitize(body.whatsapp, 40) || db.settings.whatsapp,
           email: sanitize(body.email, 160) || db.settings.email,
           location: sanitize(body.location, 180) || db.settings.location,
+          facebookUrl: sanitizeUrl(body.facebookUrl, 500) || db.settings.facebookUrl || "",
+          instagramUrl: sanitizeUrl(body.instagramUrl, 500) || db.settings.instagramUrl || "",
+          linkedinUrl: sanitizeUrl(body.linkedinUrl, 500) || db.settings.linkedinUrl || "",
+          teamLeadName: sanitize(body.teamLeadName, 120) || db.settings.teamLeadName,
+          teamLeadRole: sanitize(body.teamLeadRole, 120) || db.settings.teamLeadRole,
+          teamLeadBio: sanitize(body.teamLeadBio, 420) || db.settings.teamLeadBio,
+          teamLeadImageUrl: sanitizeImage(body.teamLeadImageUrl) || db.settings.teamLeadImageUrl || "",
         };
         return db.settings;
       });

@@ -9,6 +9,7 @@
     dashboard: null,
     content: null,
     inquiries: [],
+    careers: [],
     leadQuery: "",
   };
 
@@ -56,31 +57,53 @@
     });
   }
 
-  async function compressProjectImage(file) {
+  async function compressImageFile(file, options) {
     if (!file || !file.size) return "";
     if (!file.type.startsWith("image/")) {
-      throw new Error("Please choose an image file for the project screenshot.");
+      throw new Error(options.typeError || "Please choose an image file.");
     }
 
     const objectUrl = URL.createObjectURL(file);
     try {
       const image = await loadImage(objectUrl);
-      const maxWidth = 1200;
-      const maxHeight = 760;
+      const maxWidth = options.maxWidth;
+      const maxHeight = options.maxHeight;
       const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(image.width * scale));
       canvas.height = Math.max(1, Math.round(image.height * scale));
       const context = canvas.getContext("2d");
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.78);
-      if (dataUrl.length > 1100000) {
-        throw new Error("That screenshot is still too large. Please choose a smaller image.");
+      const dataUrl = canvas.toDataURL("image/jpeg", options.quality);
+      if (dataUrl.length > options.maxLength) {
+        throw new Error(options.sizeError || "That image is still too large. Please choose a smaller image.");
       }
       return dataUrl;
     } finally {
       URL.revokeObjectURL(objectUrl);
     }
+  }
+
+  async function compressProjectImage(file) {
+    return compressImageFile(file, {
+      maxWidth: 1200,
+      maxHeight: 760,
+      quality: 0.78,
+      maxLength: 1100000,
+      typeError: "Please choose an image file for the project screenshot.",
+      sizeError: "That screenshot is still too large. Please choose a smaller image.",
+    });
+  }
+
+  async function compressProfileImage(file) {
+    return compressImageFile(file, {
+      maxWidth: 620,
+      maxHeight: 620,
+      quality: 0.82,
+      maxLength: 520000,
+      typeError: "Please choose an image file for the team profile.",
+      sizeError: "That profile image is still too large. Please choose a smaller image.",
+    });
   }
 
   function statusPill(status) {
@@ -92,14 +115,16 @@
   }
 
   async function loadAll() {
-    const [dashboard, content, inquiryData] = await Promise.all([
+    const [dashboard, content, inquiryData, careerData] = await Promise.all([
       fetchJson("/api/admin/dashboard"),
       fetchJson("/api/admin/content"),
       fetchJson("/api/admin/inquiries"),
+      fetchJson("/api/admin/careers"),
     ]);
     state.dashboard = dashboard;
     state.content = content;
     state.inquiries = inquiryData.inquiries || [];
+    state.careers = careerData.careers || [];
   }
 
   async function checkAuth() {
@@ -160,6 +185,7 @@
       ["New Leads", metrics.newLeads || 0, svg.Mail],
       ["Services", metrics.services || 0, svg.Content],
       ["Projects", metrics.projects || 0, svg.Dashboard],
+      ["CV Submissions", metrics.careers || 0, svg.User],
     ];
     const latest = state.dashboard?.latestInquiries || [];
     return `
@@ -227,9 +253,47 @@
     `;
   }
 
+  function renderCareers() {
+    const careers = state.careers || [];
+    return `
+      <div class="admin-view">
+        <div class="admin-heading row">
+          <div><span>Careers</span><h2>CV submissions</h2></div>
+        </div>
+        <section class="admin-panel">
+          <div class="career-list">
+            ${
+              careers.length
+                ? careers
+                    .map(
+                      (career) => `
+                        <article class="career-row">
+                          <div>
+                            <strong>${escapeHtml(career.name)}</strong>
+                            <small>${escapeHtml(career.role || "Open role")} - ${new Date(career.createdAt).toLocaleDateString()}</small>
+                            <p>${escapeHtml(career.message || "No note added.")}</p>
+                            <span class="lead-contact">
+                              <a href="tel:${escapeHtml(career.phone)}">${svg.Phone} ${escapeHtml(career.phone)}</a>
+                              ${career.email ? `<a href="mailto:${escapeHtml(career.email)}">${svg.Mail} ${escapeHtml(career.email)}</a>` : ""}
+                            </span>
+                          </div>
+                          <a class="admin-mini-link" href="${escapeHtml(career.cvData)}" download="${escapeHtml(career.cvName || "sitesnap-cv.pdf")}">${svg.Save} Download CV</a>
+                        </article>
+                      `
+                    )
+                    .join("")
+                : emptyState("No CV submissions yet.")
+            }
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
   function renderContent() {
     const services = state.content?.services || [];
     const projects = state.content?.projects || [];
+    const settings = state.content?.settings || {};
     return `
       <div class="admin-view">
         <div class="admin-heading"><span>Content</span><h2>Public website services and projects</h2></div>
@@ -293,6 +357,27 @@
             </form>
           </section>
         </div>
+        <section class="admin-panel team-editor-panel">
+          <div class="panel-title"><h3>Meet Our Team Lead</h3></div>
+          <form class="admin-form team-form" id="team-form">
+            <div class="team-editor-layout">
+              <div class="team-admin-photo">${settings.teamLeadImageUrl ? `<img src="${escapeHtml(settings.teamLeadImageUrl)}" alt="" />` : svg.User}</div>
+              <div class="admin-form-stack">
+                <input name="teamLeadName" value="${escapeHtml(settings.teamLeadName || "Sathsara Bandara")}" placeholder="Name" required />
+                <input name="teamLeadRole" value="${escapeHtml(settings.teamLeadRole || "Founder / Web Strategist")}" placeholder="Role" />
+                <textarea name="teamLeadBio" placeholder="Short bio">${escapeHtml(settings.teamLeadBio || "")}</textarea>
+                <input name="teamLeadImageUrl" value="${escapeHtml(settings.teamLeadImageUrl || "")}" placeholder="Profile image URL (optional)" />
+                <label class="project-upload-field">
+                  <input id="team-image-file" name="teamImageFile" type="file" accept="image/*" />
+                  <span>Upload profile image</span>
+                  <small id="team-file-note">PNG, JPG, or WebP. The image will be optimized before saving.</small>
+                </label>
+                <button class="admin-primary" type="submit">${svg.Save} Save team profile</button>
+                <p class="admin-message" id="team-message" hidden></p>
+              </div>
+            </div>
+          </form>
+        </section>
       </div>
     `;
   }
@@ -308,6 +393,9 @@
             <label>WhatsApp international number<input name="whatsapp" value="${escapeHtml(settings.whatsapp || "")}" /></label>
             <label>Email<input name="email" value="${escapeHtml(settings.email || "")}" /></label>
             <label>Location<input name="location" value="${escapeHtml(settings.location || "")}" /></label>
+            <label>Facebook URL<input name="facebookUrl" type="url" value="${escapeHtml(settings.facebookUrl || "")}" /></label>
+            <label>Instagram URL<input name="instagramUrl" type="url" value="${escapeHtml(settings.instagramUrl || "")}" /></label>
+            <label>LinkedIn URL<input name="linkedinUrl" type="url" value="${escapeHtml(settings.linkedinUrl || "")}" /></label>
             <button class="admin-primary" type="submit">${svg.Save} Save settings</button>
             <p class="admin-message" id="settings-message" hidden></p>
           </form>
@@ -318,6 +406,7 @@
 
   function currentView() {
     if (state.tab === "leads") return renderLeads();
+    if (state.tab === "careers") return renderCareers();
     if (state.tab === "content") return renderContent();
     if (state.tab === "settings") return renderSettings();
     return renderOverview();
@@ -327,6 +416,7 @@
     const items = [
       ["overview", "Overview", svg.Dashboard],
       ["leads", "Leads", svg.Leads],
+      ["careers", "Careers", svg.User],
       ["content", "Content", svg.Content],
       ["settings", "Settings", svg.Settings],
     ];
@@ -452,6 +542,45 @@
     document.getElementById("project-image-file")?.addEventListener("change", (event) => {
       const file = event.target.files?.[0];
       const note = document.getElementById("project-file-note");
+      if (!note) return;
+      note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized before saving.";
+    });
+
+    document.getElementById("team-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const message = document.getElementById("team-message");
+      const button = form.querySelector("button");
+      button.disabled = true;
+      button.textContent = "Saving...";
+      message.hidden = true;
+      try {
+        const uploadedImage = await compressProfileImage(data.get("teamImageFile"));
+        await fetchJson("/api/admin/settings", {
+          method: "PATCH",
+          body: JSON.stringify({
+            teamLeadName: data.get("teamLeadName"),
+            teamLeadRole: data.get("teamLeadRole"),
+            teamLeadBio: data.get("teamLeadBio"),
+            teamLeadImageUrl: uploadedImage || data.get("teamLeadImageUrl"),
+          }),
+        });
+        await loadAll();
+        renderShell();
+      } catch (error) {
+        message.textContent = error.message;
+        message.classList.add("error");
+        message.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.innerHTML = `${svg.Save} Save team profile`;
+      }
+    });
+
+    document.getElementById("team-image-file")?.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      const note = document.getElementById("team-file-note");
       if (!note) return;
       note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized before saving.";
     });

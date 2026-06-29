@@ -10,9 +10,16 @@
       whatsapp: "94703720132",
       email: "hello@sitesnap.lk",
       location: "Sri Lanka",
+      facebookUrl: "https://www.facebook.com/share/1J8YPujnnk/",
+      instagramUrl: "https://www.instagram.com/sitesn4p?igsh=MTQzanNubmllemxzNQ==",
+      linkedinUrl: "https://lk.linkedin.com/in/site-snap-a2570b3b0",
       openingHours: "Mon - Sat, 9:00 AM - 6:00 PM",
       heroTitle: "All Your Digital Needs, In One Sharp Place.",
       heroLead: "We craft fast websites, web apps, ecommerce experiences, and search-ready digital systems that help businesses look premium and win better leads.",
+      teamLeadName: "Sathsara Bandara",
+      teamLeadRole: "Founder / Web Strategist",
+      teamLeadBio: "Leads project direction, client strategy, and launch quality from the first idea to the live website.",
+      teamLeadImageUrl: "",
     },
     stats: [
       { label: "Projects Delivered", value: "28+" },
@@ -27,53 +34,75 @@
     faqs: [],
   };
 
-  const teamMembers = [
-    {
-      id: "strategy",
-      name: "Imesh Piyunal",
-      role: "Founder / Web Strategist",
-      bio: "Leads project direction, client strategy, and launch quality from the first idea to the live website.",
-      initials: "IP",
-      x: 49,
-      y: 5,
-    },
-    {
-      id: "interface",
-      name: "UI Design Lead",
-      role: "Interface Designer",
-      bio: "Shapes clean layouts, responsive details, and brand energy that makes each business feel premium online.",
-      initials: "UI",
-      x: 82,
-      y: 23,
-    },
-    {
-      id: "engineering",
-      name: "Full Stack Developer",
-      role: "Frontend & Backend",
-      bio: "Builds fast pages, private dashboards, APIs, forms, integrations, and reliable owner workflows.",
-      initials: "FS",
-      x: 80,
-      y: 70,
-    },
-    {
-      id: "growth",
-      name: "Growth Specialist",
-      role: "SEO & Content",
-      bio: "Plans search-ready structure, clear content paths, local SEO basics, and lead generation touchpoints.",
-      initials: "GO",
-      x: 18,
-      y: 70,
-    },
-    {
-      id: "care",
-      name: "Care Plan Lead",
-      role: "Maintenance & Support",
-      bio: "Handles updates, monitoring, backups, improvements, and the calm support every live website needs.",
-      initials: "CP",
-      x: 16,
-      y: 23,
-    },
-  ];
+  function initialsFor(name) {
+    const parts = String(name || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    return (parts[0]?.[0] || "S") + (parts[1]?.[0] || "B");
+  }
+
+  function teamMembersFor(site) {
+    const settings = site.settings || {};
+    return [
+      {
+        id: "strategy",
+        name: settings.teamLeadName || "Sathsara Bandara",
+        role: settings.teamLeadRole || "Founder / Web Strategist",
+        bio: settings.teamLeadBio || "Leads project direction, client strategy, and launch quality from the first idea to the live website.",
+        initials: initialsFor(settings.teamLeadName || "Sathsara Bandara").toUpperCase(),
+        imageUrl: settings.teamLeadImageUrl || "",
+        x: 49,
+        y: 5,
+      },
+      {
+        id: "interface",
+        name: "UI Design Lead",
+        role: "Interface Designer",
+        bio: "Shapes clean layouts, responsive details, and brand energy that makes each business feel premium online.",
+        initials: "UI",
+        x: 85,
+        y: 24,
+      },
+      {
+        id: "engineering",
+        name: "Full Stack Developer",
+        role: "Frontend & Backend",
+        bio: "Builds fast pages, private dashboards, APIs, forms, integrations, and reliable owner workflows.",
+        initials: "FS",
+        x: 75,
+        y: 77,
+      },
+      {
+        id: "join",
+        name: "Join Our Team",
+        role: "Open CV Submission",
+        bio: "Want to work with Sitesnap? Send your CV and tell us what you are good at. We will review it from the private workspace.",
+        initials: "?",
+        isJoin: true,
+        x: 50,
+        y: 92,
+      },
+      {
+        id: "growth",
+        name: "Growth Specialist",
+        role: "SEO & Content",
+        bio: "Plans search-ready structure, clear content paths, local SEO basics, and lead generation touchpoints.",
+        initials: "GO",
+        x: 25,
+        y: 77,
+      },
+      {
+        id: "care",
+        name: "Care Plan Lead",
+        role: "Maintenance & Support",
+        bio: "Handles updates, monitoring, backups, improvements, and the calm support every live website needs.",
+        initials: "CP",
+        x: 15,
+        y: 24,
+      },
+    ];
+  }
 
   const svg = {
     Search: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>',
@@ -85,6 +114,9 @@
     ArrowUpRight: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>',
     Mail: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>',
     MessageCircle: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>',
+    Facebook: '<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M14 8.5h2.3V5h-2.8C10.7 5 9 6.7 9 9.5V12H6.8v3.5H9V22h3.8v-6.5h3l.5-3.5h-3.5V9.8c0-.8.4-1.3 1.2-1.3Z"></path></svg>',
+    Instagram: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="12" cy="12" r="3.4"></circle><circle cx="17.4" cy="6.7" r="0.8" fill="currentColor" stroke="none"></circle></svg>',
+    Linkedin: '<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.8 8.8H3.2V21h3.6V8.8ZM5 3a2.1 2.1 0 1 0 0 4.2A2.1 2.1 0 0 0 5 3Zm16 11.2c0-3.6-1.9-5.7-4.8-5.7-1.8 0-2.9.9-3.4 1.7V8.8H9.4V21H13v-6.6c0-1.7.8-2.7 2.2-2.7 1.3 0 2.1.9 2.1 2.7V21H21v-6.8Z"></path></svg>',
     Rocket: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22 22 0 0 1-4 2z"></path></svg>',
     MonitorSmartphone: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="10" x="3" y="4" rx="2"></rect><rect width="7" height="12" x="14" y="8" rx="2"></rect><path d="M8 18h4"></path></svg>',
     Code2: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>',
@@ -148,6 +180,40 @@
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || "Request failed");
     return data;
+  }
+
+  function readFileAsDataUrl(file, allowedTypes, maxBytes) {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        reject(new Error("Please upload your CV."));
+        return;
+      }
+      const fileType = file.type || mimeTypeForFile(file.name);
+      if (!allowedTypes.includes(fileType)) {
+        reject(new Error("Please upload a PDF, DOC, or DOCX CV."));
+        return;
+      }
+      if (file.size > maxBytes) {
+        reject(new Error("Your CV is too large. Please keep it under 1.5 MB."));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || "");
+        const base64 = result.includes(",") ? result.split(",").slice(1).join(",") : result;
+        resolve(result.startsWith(`data:${fileType};base64,`) ? result : `data:${fileType};base64,${base64}`);
+      };
+      reader.onerror = () => reject(new Error("Could not read the selected file."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function mimeTypeForFile(name) {
+    const lower = String(name || "").toLowerCase();
+    if (lower.endsWith(".pdf")) return "application/pdf";
+    if (lower.endsWith(".doc")) return "application/msword";
+    if (lower.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    return "";
   }
 
   function normalizeSite(site) {
@@ -369,8 +435,15 @@
     `;
   }
 
-  function renderTeamSection() {
-    const profile = teamMembers[0];
+  function renderTeamAvatar(member, extraClass = "team-avatar") {
+    return member.imageUrl
+      ? `<span class="${extraClass} has-photo"><img src="${escapeHtml(member.imageUrl)}" alt="" /></span>`
+      : `<span class="${extraClass}">${escapeHtml(member.initials)}</span>`;
+  }
+
+  function renderTeamSection(site) {
+    const members = teamMembersFor(site);
+    const profile = members[0];
     return `
       <section class="section team-orbit-section" data-team-section>
         <div class="container">
@@ -388,26 +461,61 @@
                 <img src="${logo}" alt="" />
                 <span>Sitesnap</span>
               </div>
-              ${teamMembers
+              ${members
                 .map(
                   (member, index) => `
-                    <button class="team-node ${index === 0 ? "is-active" : ""}" type="button" data-team-id="${member.id}" style="left:${member.x}%; top:${member.y}%; --delay:${index * 0.18}s">
-                      <span class="team-avatar">${member.initials}</span>
+                    <button
+                      class="team-node ${index === 0 ? "is-active" : ""} ${member.isJoin ? "is-join-node" : ""}"
+                      type="button"
+                      data-team-id="${escapeHtml(member.id)}"
+                      data-member-name="${escapeHtml(member.name)}"
+                      data-member-role="${escapeHtml(member.role)}"
+                      data-member-bio="${escapeHtml(member.bio)}"
+                      data-member-initials="${escapeHtml(member.initials)}"
+                      data-member-image="${escapeHtml(member.imageUrl || "")}"
+                      data-member-join="${member.isJoin ? "true" : "false"}"
+                      style="left:${member.x}%; top:${member.y}%; --delay:${index * 0.18}s"
+                    >
+                      ${renderTeamAvatar(member)}
                       <span class="team-node-name">${escapeHtml(member.name)}</span>
                     </button>
                   `
                 )
                 .join("")}
-              <div class="join-node" aria-hidden="true">+</div>
             </div>
             <aside class="team-profile reveal" aria-live="polite">
               <span class="team-profile-kicker">Active role</span>
-              <div class="profile-avatar" data-profile-initials>${profile.initials}</div>
+              <div class="profile-avatar ${profile.imageUrl ? "has-photo" : ""}" data-profile-avatar>${profile.imageUrl ? `<img src="${escapeHtml(profile.imageUrl)}" alt="" />` : escapeHtml(profile.initials)}</div>
               <h3 data-profile-name>${escapeHtml(profile.name)}</h3>
               <strong data-profile-role>${escapeHtml(profile.role)}</strong>
               <p data-profile-bio>${escapeHtml(profile.bio)}</p>
-              <a class="ghost-pill large" href="/contact">Work With Us ${icon("ArrowRight")}</a>
+              <a class="ghost-pill large" href="/contact" data-profile-action>Work With Us ${icon("ArrowRight")}</a>
             </aside>
+          </div>
+          <div class="career-apply-panel reveal" id="career-apply">
+            <div>
+              ${sectionTag("Join Sitesnap")}
+              <h3>Send your CV to join our team.</h3>
+              <p>Upload your CV and tell us the role you are interested in. We will review it inside the private workspace.</p>
+            </div>
+            <form class="career-form" id="career-form">
+              <div class="field-grid">
+                <label>Name<input name="name" required /></label>
+                <label>Phone<input name="phone" required /></label>
+              </div>
+              <div class="field-grid">
+                <label>Email<input name="email" type="email" /></label>
+                <label>Interested role<input name="role" placeholder="Designer, developer, SEO..." /></label>
+              </div>
+              <label>Short note<textarea name="message" rows="4" placeholder="Tell us about your skills"></textarea></label>
+              <label class="cv-upload-field">
+                <input id="career-cv-file" name="cvFile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
+                <span>Upload CV</span>
+                <small id="career-file-note">PDF, DOC, or DOCX up to 1.5 MB.</small>
+              </label>
+              <button class="primary-pill large full" type="submit">Submit CV ${icon("ArrowRight")}</button>
+              <p class="form-note" id="career-form-note" hidden></p>
+            </form>
           </div>
         </div>
       </section>
@@ -589,6 +697,13 @@
   }
 
   function renderFooter(site) {
+    const settings = site.settings || {};
+    const socialLinks = [
+      ["Facebook", settings.facebookUrl, "Facebook"],
+      ["Instagram", settings.instagramUrl, "Instagram"],
+      ["LinkedIn", settings.linkedinUrl, "Linkedin"],
+      ["WhatsApp", settings.whatsapp ? `https://wa.me/${settings.whatsapp}` : "", "MessageCircle"],
+    ].filter((item) => item[1]);
     return `
       <footer class="site-footer">
         <div class="footer-watermark" aria-hidden="true">
@@ -596,10 +711,16 @@
           <div class="watermark-glow"><span>SITESNAP</span></div>
         </div>
         <div class="container footer-grid">
-          <div><img src="${logo}" alt="Sitesnap Web Solutions" /><p>Premium websites, web apps, private dashboards, ecommerce systems, SEO foundations, and care plans.</p></div>
+          <div>
+            <img src="${logo}" alt="Sitesnap Web Solutions" />
+            <p>Premium websites, web apps, private dashboards, ecommerce systems, SEO foundations, and care plans.</p>
+            <div class="footer-social" aria-label="Sitesnap social links">
+              ${socialLinks.map(([label, href, iconName]) => `<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(label)}">${icon(iconName)}<span>${escapeHtml(label)}</span></a>`).join("")}
+            </div>
+          </div>
           <div><h3>Company</h3><a href="/about">About</a><a href="/services">Services</a><a href="/portfolio">Portfolio</a><a href="/contact">Contact</a></div>
           <div><h3>Services</h3><div class="footer-chips">${site.services.slice(0, 6).map((service) => `<a href="/services#${escapeHtml(service.id)}">${escapeHtml(service.title)}</a>`).join("")}</div></div>
-          <div><h3>Contact</h3><a href="tel:${escapeHtml(site.settings.phone)}">${escapeHtml(site.settings.phone)}</a><a href="https://wa.me/${escapeHtml(site.settings.whatsapp)}" target="_blank" rel="noreferrer">WhatsApp</a><a href="mailto:${escapeHtml(site.settings.email)}">${escapeHtml(site.settings.email)}</a></div>
+          <div><h3>Contact</h3><a href="tel:${escapeHtml(settings.phone)}">${escapeHtml(settings.phone)}</a><a href="https://wa.me/${escapeHtml(settings.whatsapp)}" target="_blank" rel="noreferrer">WhatsApp</a><a href="mailto:${escapeHtml(settings.email)}">${escapeHtml(settings.email)}</a></div>
         </div>
         <div class="footer-bottom"><span>&copy; 2026 Sitesnap Web Solutions. All rights reserved.</span><span>Designed for fast launches and clean growth.</span></div>
       </footer>
@@ -622,7 +743,7 @@
       ${renderPageHero("About Sitesnap", "A web design company built for clean launches.", "We combine sharp design, practical engineering, and growth-focused structure to help businesses move online with confidence.", `<a class="primary-pill large" href="/contact">Start a Project ${icon("ArrowRight")}</a><a class="ghost-pill large" href="/services">Our Services</a>`)}
       ${renderStorySection(site)}
       ${renderValues()}
-      ${renderTeamSection()}
+      ${renderTeamSection(site)}
       ${renderProcess(site.process)}
     `;
   }
@@ -669,13 +790,16 @@
     const menu = document.getElementById("mobile-menu");
     document.getElementById("open-menu")?.addEventListener("click", () => {
       menu.hidden = false;
+      document.body.classList.add("menu-open");
     });
     document.getElementById("close-menu")?.addEventListener("click", () => {
       menu.hidden = true;
+      document.body.classList.remove("menu-open");
     });
     menu?.querySelectorAll("a").forEach((link) =>
       link.addEventListener("click", () => {
         menu.hidden = true;
+        document.body.classList.remove("menu-open");
       })
     );
   }
@@ -731,27 +855,43 @@
     const section = document.querySelector("[data-team-section]");
     if (!section) return;
     const profile = {
-      initials: section.querySelector("[data-profile-initials]"),
+      avatar: section.querySelector("[data-profile-avatar]"),
       name: section.querySelector("[data-profile-name]"),
       role: section.querySelector("[data-profile-role]"),
       bio: section.querySelector("[data-profile-bio]"),
+      action: section.querySelector("[data-profile-action]"),
     };
     const nodes = [...section.querySelectorAll("[data-team-id]")];
-    const selectMember = (id) => {
-      const member = teamMembers.find((item) => item.id === id);
-      if (!member) return;
-      nodes.forEach((node) => node.classList.toggle("is-active", node.dataset.teamId === id));
-      profile.initials.textContent = member.initials;
-      profile.name.textContent = member.name;
-      profile.role.textContent = member.role;
-      profile.bio.textContent = member.bio;
+    const updateAvatar = (node) => {
+      const imageUrl = node.dataset.memberImage;
+      profile.avatar.classList.toggle("has-photo", Boolean(imageUrl));
+      profile.avatar.textContent = "";
+      if (imageUrl) {
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.alt = "";
+        profile.avatar.appendChild(image);
+      } else {
+        profile.avatar.textContent = node.dataset.memberInitials || "?";
+      }
+    };
+    const selectMember = (node) => {
+      if (!node) return;
+      const isJoin = node.dataset.memberJoin === "true";
+      nodes.forEach((item) => item.classList.toggle("is-active", item === node));
+      updateAvatar(node);
+      profile.name.textContent = node.dataset.memberName || "Sitesnap Team";
+      profile.role.textContent = node.dataset.memberRole || "Digital team";
+      profile.bio.textContent = node.dataset.memberBio || "";
+      profile.action.href = isJoin ? "#career-apply" : "/contact";
+      profile.action.innerHTML = isJoin ? `Send Your CV ${icon("ArrowRight")}` : `Work With Us ${icon("ArrowRight")}`;
       section.querySelector(".team-profile")?.classList.remove("pulse");
       requestAnimationFrame(() => section.querySelector(".team-profile")?.classList.add("pulse"));
     };
     nodes.forEach((node) => {
-      node.addEventListener("mouseenter", () => selectMember(node.dataset.teamId));
-      node.addEventListener("focus", () => selectMember(node.dataset.teamId));
-      node.addEventListener("click", () => selectMember(node.dataset.teamId));
+      node.addEventListener("mouseenter", () => selectMember(node));
+      node.addEventListener("focus", () => selectMember(node));
+      node.addEventListener("click", () => selectMember(node));
     });
   }
 
@@ -867,6 +1007,62 @@
     });
   }
 
+  function bindCareerForm() {
+    const form = document.getElementById("career-form");
+    if (!form) return;
+    const fileInput = document.getElementById("career-cv-file");
+    const fileNote = document.getElementById("career-file-note");
+    fileInput?.addEventListener("change", () => {
+      const file = fileInput.files?.[0];
+      fileNote.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PDF, DOC, or DOCX up to 1.5 MB.";
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const note = document.getElementById("career-form-note");
+      const button = form.querySelector("button");
+      const data = new FormData(form);
+      button.disabled = true;
+      button.textContent = "Uploading...";
+      note.hidden = true;
+      try {
+        const file = data.get("cvFile");
+        const cvData = await readFileAsDataUrl(
+          file,
+          [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          ],
+          1.5 * 1024 * 1024
+        );
+        await fetchJson("/api/careers", {
+          method: "POST",
+          body: JSON.stringify({
+            name: data.get("name"),
+            email: data.get("email"),
+            phone: data.get("phone"),
+            role: data.get("role"),
+            message: data.get("message"),
+            cvName: file.name,
+            cvType: file.type || mimeTypeForFile(file.name),
+            cvData,
+          }),
+        });
+        form.reset();
+        fileNote.textContent = "PDF, DOC, or DOCX up to 1.5 MB.";
+        note.textContent = "Thanks. Your CV was submitted successfully.";
+        note.hidden = false;
+      } catch (error) {
+        note.textContent = error.message;
+        note.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.innerHTML = `Submit CV ${icon("ArrowRight")}`;
+      }
+    });
+  }
+
   function scrollToHash() {
     if (!window.location.hash) return;
     requestAnimationFrame(() => {
@@ -884,6 +1080,7 @@
     bindWorkPreview();
     bindWorkFilters();
     bindContactForm();
+    bindCareerForm();
     scrollToHash();
   }
 
