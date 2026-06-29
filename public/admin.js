@@ -363,7 +363,7 @@
                       </div>
                       <div class="content-actions">
                         <button class="soft-button icon-only" type="button" data-toggle-project-edit="${escapeHtml(project.id)}" aria-label="Edit project">${svg.Pencil}</button>
-                        <button class="danger-button" type="button" data-delete-project="${escapeHtml(project.id)}" aria-label="Delete project">${svg.Trash}</button>
+                        <button class="danger-button content-delete-button" type="button" data-delete-project="${escapeHtml(project.id)}" data-delete-project-name="${escapeHtml(project.name)}" aria-label="Delete ${escapeHtml(project.name)}">${svg.Trash}<span>Delete</span></button>
                       </div>
                       <form class="admin-form inline-edit-form project-edit-form" data-project-edit-form="${escapeHtml(project.id)}" hidden>
                         <input name="name" value="${escapeHtml(project.name)}" placeholder="Name" required />
@@ -530,10 +530,19 @@
 
     document.querySelectorAll("[data-delete-project]").forEach((button) => {
       button.addEventListener("click", async () => {
-        if (!window.confirm("Delete this project?")) return;
-        await fetchJson(`/api/admin/projects/${button.dataset.deleteProject}`, { method: "DELETE" });
-        await loadAll();
-        renderShell();
+        const projectName = button.dataset.deleteProjectName || "this project";
+        if (!window.confirm(`Delete "${projectName}" from your projects?`)) return;
+        button.disabled = true;
+        button.innerHTML = `${svg.Trash}<span>Deleting...</span>`;
+        try {
+          await fetchJson(`/api/admin/projects/${button.dataset.deleteProject}`, { method: "DELETE" });
+          await loadAll();
+          renderShell();
+        } catch (error) {
+          window.alert(error.message);
+          button.disabled = false;
+          button.innerHTML = `${svg.Trash}<span>Delete</span>`;
+        }
       });
     });
 

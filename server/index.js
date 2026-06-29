@@ -528,10 +528,13 @@ async function routeApi(req, res, pathname) {
   if (req.method === "DELETE" && projectMatch) {
     const admin = requireAdmin(req, res);
     if (!admin) return null;
-    await updateDb((db) => {
-      db.projects = db.projects.filter((item) => item.id !== projectMatch[1]);
-      return true;
+    const deleted = await updateDb((db) => {
+      const projects = db.projects || [];
+      const nextProjects = projects.filter((item) => item.id !== projectMatch[1]);
+      db.projects = nextProjects;
+      return nextProjects.length !== projects.length;
     });
+    if (!deleted) return sendJson(res, 404, { message: "Project not found" });
     return sendJson(res, 200, { ok: true });
   }
 

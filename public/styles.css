@@ -2051,6 +2051,19 @@ blockquote cite span {
   cursor: pointer;
 }
 
+.content-delete-button {
+  width: auto;
+  padding: 0 12px;
+  gap: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.danger-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
 .admin-form {
   display: grid;
   gap: 12px;
