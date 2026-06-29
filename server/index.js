@@ -56,12 +56,80 @@ function sanitizeCv(value) {
   return "";
 }
 
+function settingsWithDefaults(settings = {}) {
+  const merged = { ...settings };
+  Object.entries(defaultSettings).forEach(([key, value]) => {
+    if (!merged[key]) merged[key] = value;
+  });
+  return merged;
+}
+
 function publicSiteShape(db) {
   const { inquiries, subscribers, careers, ...publicData } = db;
   return {
     ...publicData,
-    settings: { ...defaultSettings, ...(publicData.settings || {}) },
+    settings: settingsWithDefaults(publicData.settings),
   };
+}
+
+function cloudinaryConfig() {
+  const value = process.env.CLOUDINARY_URL;
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "cloudinary:") return null;
+    return {
+      cloudName: parsed.hostname,
+      apiKey: decodeURIComponent(parsed.username),
+      apiSecret: decodeURIComponent(parsed.password),
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function cloudinaryFolder(value) {
+  return sanitize(value, 40) === "team" ? "sitesnap/team" : "sitesnap/projects";
+}
+
+async function uploadCloudinaryImage(imageData, folder) {
+  const config = cloudinaryConfig();
+  if (!config?.cloudName || !config.apiKey || !config.apiSecret) {
+    const error = new Error("Cloudinary storage is not configured yet.");
+    error.status = 503;
+    throw error;
+  }
+
+  const file = sanitizeImage(imageData);
+  if (!file || !file.startsWith("data:image/")) {
+    const error = new Error("Please upload a valid optimized image.");
+    error.status = 400;
+    throw error;
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const targetFolder = cloudinaryFolder(folder);
+  const signaturePayload = `folder=${targetFolder}&timestamp=${timestamp}${config.apiSecret}`;
+  const signature = crypto.createHash("sha1").update(signaturePayload).digest("hex");
+  const form = new FormData();
+  form.append("file", file);
+  form.append("api_key", config.apiKey);
+  form.append("timestamp", String(timestamp));
+  form.append("folder", targetFolder);
+  form.append("signature", signature);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`, {
+    method: "POST",
+    body: form,
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.secure_url) {
+    const error = new Error(result.error?.message || "Image upload failed.");
+    error.status = response.ok ? 502 : response.status;
+    throw error;
+  }
+
+  return result.secure_url;
 }
 
 function sendJson(res, status, body, headers = {}) {
@@ -340,6 +408,18 @@ async function routeApi(req, res, pathname) {
       return db.settings;
     });
     return sendJson(res, 200, { settings });
+  }
+
+  if (req.method === "POST" && pathname === "/api/admin/upload-image") {
+    const admin = requireAdmin(req, res);
+    if (!admin) return null;
+    const body = await readBody(req);
+    try {
+      const imageUrl = await uploadCloudinaryImage(body.imageData, body.folder);
+      return sendJson(res, 201, { imageUrl });
+    } catch (error) {
+      return sendJson(res, error.status || 500, { message: error.message || "Image upload failed." });
+    }
   }
 
   if (req.method === "POST" && pathname === "/api/admin/services") {

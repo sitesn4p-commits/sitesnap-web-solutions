@@ -1670,6 +1670,15 @@ blockquote cite span {
   align-items: start;
 }
 
+.content-control-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.content-manager-panel {
+  overflow: hidden;
+}
+
 .admin-panel {
   padding: 20px;
 }
@@ -1714,7 +1723,8 @@ blockquote cite span {
   border-radius: 8px;
   padding: 12px;
   background: rgba(255, 255, 255, 0.035);
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -1831,23 +1841,22 @@ blockquote cite span {
 
 .content-list article {
   align-items: start;
-  flex-wrap: wrap;
 }
 
 .content-project-row {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
   gap: 12px;
 }
 
 .content-service-row > div:first-child,
 .content-project-row > div:nth-child(2) {
   min-width: 0;
-  flex: 1 1 220px;
 }
 
 .content-actions {
   display: inline-flex;
   gap: 8px;
-  flex: 0 0 auto;
+  justify-self: end;
 }
 
 .soft-button {
@@ -1871,11 +1880,11 @@ blockquote cite span {
 }
 
 .inline-edit-form {
-  flex: 0 0 100%;
   width: 100%;
   margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
+  grid-column: 1 / -1;
 }
 
 .project-edit-form {
@@ -2968,6 +2977,15 @@ article[id] {
 
   .project-edit-form {
     grid-template-columns: 1fr;
+  }
+
+  .content-list article,
+  .content-project-row {
+    grid-template-columns: 1fr;
+  }
+
+  .content-actions {
+    justify-self: start;
   }
 }
 

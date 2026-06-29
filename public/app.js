@@ -216,11 +216,19 @@
     return "";
   }
 
+  function settingsWithDefaults(settings = {}) {
+    const merged = { ...settings };
+    Object.entries(fallbackSite.settings).forEach(([key, value]) => {
+      if (!merged[key]) merged[key] = value;
+    });
+    return merged;
+  }
+
   function normalizeSite(site) {
     return {
       ...fallbackSite,
       ...site,
-      settings: { ...fallbackSite.settings, ...(site.settings || {}) },
+      settings: settingsWithDefaults(site.settings),
       stats: site.stats?.length ? site.stats : fallbackSite.stats,
       services: site.services?.length ? site.services : fallbackSite.services,
       process: site.process?.length ? site.process : fallbackSite.process,

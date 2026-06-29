@@ -96,6 +96,20 @@
     });
   }
 
+  async function uploadOptimizedImage(file, folder, compressor) {
+    const imageData = await compressor(file);
+    if (!imageData) return "";
+    const result = await fetchJson("/api/admin/upload-image", {
+      method: "POST",
+      body: JSON.stringify({ imageData, folder }),
+    });
+    return result.imageUrl || "";
+  }
+
+  async function uploadProjectImage(file) {
+    return uploadOptimizedImage(file, "projects", compressProjectImage);
+  }
+
   async function compressProfileImage(file) {
     return compressImageFile(file, {
       maxWidth: 620,
@@ -105,6 +119,10 @@
       typeError: "Please choose an image file for the team profile.",
       sizeError: "That profile image is still too large. Please choose a smaller image.",
     });
+  }
+
+  async function uploadProfileImage(file) {
+    return uploadOptimizedImage(file, "team", compressProfileImage);
   }
 
   function statusPill(status) {
@@ -298,8 +316,8 @@
     return `
       <div class="admin-view">
         <div class="admin-heading"><span>Content</span><h2>Public website services and projects</h2></div>
-        <div class="admin-two-col align-start">
-          <section class="admin-panel">
+        <div class="content-control-grid">
+          <section class="admin-panel content-manager-panel">
             <div class="panel-title"><h3>Services</h3></div>
             <div class="content-list">
               ${services
@@ -330,7 +348,7 @@
               <button class="admin-primary" type="submit">${svg.Plus} Add service</button>
             </form>
           </section>
-          <section class="admin-panel">
+          <section class="admin-panel content-manager-panel">
             <div class="panel-title"><h3>Projects</h3></div>
             <div class="content-list">
               ${projects
@@ -357,7 +375,7 @@
                         <label class="project-upload-field">
                           <input data-project-edit-file name="imageFile" type="file" accept="image/*" />
                           <span>Replace website screenshot</span>
-                          <small data-project-edit-note>PNG, JPG, or WebP. Leave empty to keep the current image.</small>
+                          <small data-project-edit-note>PNG, JPG, or WebP. Uploaded to Cloudinary. Leave empty to keep the current image.</small>
                         </label>
                         <button class="admin-primary" type="submit">${svg.Save} Save project</button>
                         <p class="admin-message error" data-project-edit-message hidden></p>
@@ -378,7 +396,7 @@
               <label class="project-upload-field">
                 <input id="project-image-file" name="imageFile" type="file" accept="image/*" />
                 <span>Upload website screenshot</span>
-                <small id="project-file-note">PNG, JPG, or WebP. The image will be optimized before saving.</small>
+                <small id="project-file-note">PNG, JPG, or WebP. The image will be optimized and uploaded to Cloudinary.</small>
               </label>
               <button class="admin-primary" type="submit">${svg.Plus} Add project</button>
               <p class="admin-message error" data-project-message hidden></p>
@@ -398,7 +416,7 @@
                 <label class="project-upload-field">
                   <input id="team-image-file" name="teamImageFile" type="file" accept="image/*" />
                   <span>Upload profile image</span>
-                  <small id="team-file-note">PNG, JPG, or WebP. The image will be optimized before saving.</small>
+                  <small id="team-file-note">PNG, JPG, or WebP. The image will be optimized and uploaded to Cloudinary.</small>
                 </label>
                 <button class="admin-primary" type="submit">${svg.Save} Save team profile</button>
                 <p class="admin-message" id="team-message" hidden></p>
@@ -570,7 +588,7 @@
         button.textContent = "Saving...";
         message.hidden = true;
         try {
-          const uploadedImage = await compressProjectImage(data.get("imageFile"));
+          const uploadedImage = await uploadProjectImage(data.get("imageFile"));
           await fetchJson(`/api/admin/projects/${form.dataset.projectEditForm}`, {
             method: "PATCH",
             body: JSON.stringify({
@@ -619,7 +637,7 @@
       button.textContent = "Saving...";
       message.hidden = true;
       try {
-        const uploadedImage = await compressProjectImage(data.get("imageFile"));
+        const uploadedImage = await uploadProjectImage(data.get("imageFile"));
         await fetchJson("/api/admin/projects", {
           method: "POST",
           body: JSON.stringify({
@@ -646,7 +664,7 @@
       const file = event.target.files?.[0];
       const note = document.getElementById("project-file-note");
       if (!note) return;
-      note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized before saving.";
+      note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized and uploaded to Cloudinary.";
     });
 
     document.querySelectorAll("[data-project-edit-file]").forEach((input) => {
@@ -654,7 +672,7 @@
         const file = event.target.files?.[0];
         const note = input.closest("form")?.querySelector("[data-project-edit-note]");
         if (!note) return;
-        note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. Leave empty to keep the current image.";
+        note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. Uploaded to Cloudinary. Leave empty to keep the current image.";
       });
     });
 
@@ -668,7 +686,7 @@
       button.textContent = "Saving...";
       message.hidden = true;
       try {
-        const uploadedImage = await compressProfileImage(data.get("teamImageFile"));
+        const uploadedImage = await uploadProfileImage(data.get("teamImageFile"));
         await fetchJson("/api/admin/settings", {
           method: "PATCH",
           body: JSON.stringify({
@@ -694,7 +712,7 @@
       const file = event.target.files?.[0];
       const note = document.getElementById("team-file-note");
       if (!note) return;
-      note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized before saving.";
+      note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized and uploaded to Cloudinary.";
     });
 
     document.getElementById("settings-form")?.addEventListener("submit", async (event) => {
