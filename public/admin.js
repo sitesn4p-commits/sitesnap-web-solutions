@@ -21,6 +21,7 @@
     Logout: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path></svg>',
     User: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg>',
     Plus: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"></path></svg>',
+    Pencil: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>',
     Trash: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 14H6L5 6"></path></svg>',
     Save: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg>',
     Phone: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
@@ -304,9 +305,18 @@
               ${services
                 .map(
                   (service) => `
-                    <article>
+                    <article class="content-service-row">
                       <div><strong>${escapeHtml(service.title)}</strong><p>${escapeHtml(service.summary)}</p></div>
-                      <button class="danger-button" type="button" data-delete-service="${escapeHtml(service.id)}" aria-label="Delete service">${svg.Trash}</button>
+                      <div class="content-actions">
+                        <button class="soft-button icon-only" type="button" data-toggle-service-edit="${escapeHtml(service.id)}" aria-label="Edit service">${svg.Pencil}</button>
+                        <button class="danger-button" type="button" data-delete-service="${escapeHtml(service.id)}" aria-label="Delete service">${svg.Trash}</button>
+                      </div>
+                      <form class="admin-form inline-edit-form" data-service-edit-form="${escapeHtml(service.id)}" hidden>
+                        <input name="title" value="${escapeHtml(service.title)}" placeholder="Title" required />
+                        <textarea name="summary" placeholder="Summary" required>${escapeHtml(service.summary)}</textarea>
+                        <input name="features" value="${escapeHtml((service.features || []).join(", "))}" placeholder="Features, comma separated" />
+                        <button class="admin-primary" type="submit">${svg.Save} Save service</button>
+                      </form>
                     </article>
                   `
                 )
@@ -333,7 +343,25 @@
                         <p>${escapeHtml(project.summary)}</p>
                         <small>${escapeHtml(project.type || "Website")} ${project.websiteUrl ? `- ${escapeHtml(project.websiteUrl)}` : ""}</small>
                       </div>
-                      <button class="danger-button" type="button" data-delete-project="${escapeHtml(project.id)}" aria-label="Delete project">${svg.Trash}</button>
+                      <div class="content-actions">
+                        <button class="soft-button icon-only" type="button" data-toggle-project-edit="${escapeHtml(project.id)}" aria-label="Edit project">${svg.Pencil}</button>
+                        <button class="danger-button" type="button" data-delete-project="${escapeHtml(project.id)}" aria-label="Delete project">${svg.Trash}</button>
+                      </div>
+                      <form class="admin-form inline-edit-form project-edit-form" data-project-edit-form="${escapeHtml(project.id)}" hidden>
+                        <input name="name" value="${escapeHtml(project.name)}" placeholder="Name" required />
+                        <input name="type" value="${escapeHtml(project.type || "")}" placeholder="Type" />
+                        <textarea name="summary" placeholder="Summary" required>${escapeHtml(project.summary)}</textarea>
+                        <input name="result" value="${escapeHtml(project.result || "")}" placeholder="Result" />
+                        <input name="websiteUrl" type="url" value="${escapeHtml(project.websiteUrl || "")}" placeholder="Website link (https://example.com)" />
+                        <input name="imageUrl" value="${escapeHtml(project.imageUrl || "")}" placeholder="Preview image URL (optional)" />
+                        <label class="project-upload-field">
+                          <input data-project-edit-file name="imageFile" type="file" accept="image/*" />
+                          <span>Replace website screenshot</span>
+                          <small data-project-edit-note>PNG, JPG, or WebP. Leave empty to keep the current image.</small>
+                        </label>
+                        <button class="admin-primary" type="submit">${svg.Save} Save project</button>
+                        <p class="admin-message error" data-project-edit-message hidden></p>
+                      </form>
                     </article>
                   `
                 )
@@ -491,6 +519,81 @@
       });
     });
 
+    document.querySelectorAll("[data-toggle-service-edit]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const form = document.querySelector(`[data-service-edit-form="${CSS.escape(button.dataset.toggleServiceEdit)}"]`);
+        if (!form) return;
+        form.hidden = !form.hidden;
+      });
+    });
+
+    document.querySelectorAll("[data-toggle-project-edit]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const form = document.querySelector(`[data-project-edit-form="${CSS.escape(button.dataset.toggleProjectEdit)}"]`);
+        if (!form) return;
+        form.hidden = !form.hidden;
+      });
+    });
+
+    document.querySelectorAll("[data-service-edit-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(form).entries());
+        const button = form.querySelector("button");
+        button.disabled = true;
+        button.textContent = "Saving...";
+        try {
+          await fetchJson(`/api/admin/services/${form.dataset.serviceEditForm}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              title: data.title,
+              summary: data.summary,
+              features: String(data.features || "").split(",").map((item) => item.trim()).filter(Boolean),
+            }),
+          });
+          await loadAll();
+          renderShell();
+        } finally {
+          button.disabled = false;
+          button.innerHTML = `${svg.Save} Save service`;
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-project-edit-form]").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = new FormData(form);
+        const message = form.querySelector("[data-project-edit-message]");
+        const button = form.querySelector("button");
+        button.disabled = true;
+        button.textContent = "Saving...";
+        message.hidden = true;
+        try {
+          const uploadedImage = await compressProjectImage(data.get("imageFile"));
+          await fetchJson(`/api/admin/projects/${form.dataset.projectEditForm}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              name: data.get("name"),
+              type: data.get("type"),
+              summary: data.get("summary"),
+              result: data.get("result"),
+              websiteUrl: data.get("websiteUrl"),
+              imageUrl: uploadedImage || data.get("imageUrl"),
+            }),
+          });
+          await loadAll();
+          renderShell();
+        } catch (error) {
+          message.textContent = error.message;
+          message.hidden = false;
+        } finally {
+          button.disabled = false;
+          button.innerHTML = `${svg.Save} Save project`;
+        }
+      });
+    });
+
     document.getElementById("service-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const data = Object.fromEntries(new FormData(event.currentTarget).entries());
@@ -544,6 +647,15 @@
       const note = document.getElementById("project-file-note");
       if (!note) return;
       note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized before saving.";
+    });
+
+    document.querySelectorAll("[data-project-edit-file]").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        const note = input.closest("form")?.querySelector("[data-project-edit-note]");
+        if (!note) return;
+        note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. Leave empty to keep the current image.";
+      });
     });
 
     document.getElementById("team-form")?.addEventListener("submit", async (event) => {

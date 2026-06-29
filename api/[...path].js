@@ -346,6 +346,25 @@ module.exports = async function handler(req, res) {
     }
 
     const serviceMatch = pathname.match(/^\/api\/admin\/services\/([^/]+)$/);
+    if (req.method === "PATCH" && serviceMatch) {
+      const admin = requireAdmin(req, res);
+      if (!admin) return null;
+      const body = await readBody(req);
+      const updated = await updateDb((db) => {
+        const service = (db.services || []).find((item) => item.id === serviceMatch[1]);
+        if (!service) return null;
+        service.title = sanitize(body.title, 120) || service.title;
+        service.summary = sanitize(body.summary, 240) || service.summary;
+        if (Array.isArray(body.features)) {
+          service.features = body.features.map((item) => sanitize(item, 80)).filter(Boolean).slice(0, 6);
+        }
+        service.icon = sanitize(body.icon, 40) || service.icon || "Code2";
+        return service;
+      });
+      if (!updated) return sendJson(res, 404, { message: "Service not found" });
+      return sendJson(res, 200, { service: updated });
+    }
+
     if (req.method === "DELETE" && serviceMatch) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
@@ -384,6 +403,30 @@ module.exports = async function handler(req, res) {
     }
 
     const projectMatch = pathname.match(/^\/api\/admin\/projects\/([^/]+)$/);
+    if (req.method === "PATCH" && projectMatch) {
+      const admin = requireAdmin(req, res);
+      if (!admin) return null;
+      const body = await readBody(req);
+      const hasImage = Object.prototype.hasOwnProperty.call(body, "imageUrl");
+      const imageUrl = hasImage ? sanitizeImage(body.imageUrl) : "";
+      if (hasImage && body.imageUrl && !imageUrl) {
+        return sendJson(res, 400, { message: "Project image must be a valid image URL or optimized image upload." });
+      }
+      const updated = await updateDb((db) => {
+        const project = (db.projects || []).find((item) => item.id === projectMatch[1]);
+        if (!project) return null;
+        project.name = sanitize(body.name, 120) || project.name;
+        project.type = sanitize(body.type, 80);
+        project.summary = sanitize(body.summary, 260) || project.summary;
+        project.result = sanitize(body.result, 120);
+        project.websiteUrl = sanitizeUrl(body.websiteUrl);
+        if (hasImage) project.imageUrl = imageUrl;
+        return project;
+      });
+      if (!updated) return sendJson(res, 404, { message: "Project not found" });
+      return sendJson(res, 200, { project: updated });
+    }
+
     if (req.method === "DELETE" && projectMatch) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;

@@ -52,8 +52,8 @@
         bio: settings.teamLeadBio || "Leads project direction, client strategy, and launch quality from the first idea to the live website.",
         initials: initialsFor(settings.teamLeadName || "Sathsara Bandara").toUpperCase(),
         imageUrl: settings.teamLeadImageUrl || "",
-        x: 49,
-        y: 5,
+        x: 50,
+        y: 9,
       },
       {
         id: "interface",
@@ -61,8 +61,8 @@
         role: "Interface Designer",
         bio: "Shapes clean layouts, responsive details, and brand energy that makes each business feel premium online.",
         initials: "UI",
-        x: 85,
-        y: 24,
+        x: 82,
+        y: 27,
       },
       {
         id: "engineering",
@@ -70,8 +70,8 @@
         role: "Frontend & Backend",
         bio: "Builds fast pages, private dashboards, APIs, forms, integrations, and reliable owner workflows.",
         initials: "FS",
-        x: 75,
-        y: 77,
+        x: 78,
+        y: 72,
       },
       {
         id: "join",
@@ -81,7 +81,7 @@
         initials: "?",
         isJoin: true,
         x: 50,
-        y: 92,
+        y: 89,
       },
       {
         id: "growth",
@@ -89,8 +89,8 @@
         role: "SEO & Content",
         bio: "Plans search-ready structure, clear content paths, local SEO basics, and lead generation touchpoints.",
         initials: "GO",
-        x: 25,
-        y: 77,
+        x: 22,
+        y: 72,
       },
       {
         id: "care",
@@ -98,8 +98,8 @@
         role: "Maintenance & Support",
         bio: "Handles updates, monitoring, backups, improvements, and the calm support every live website needs.",
         initials: "CP",
-        x: 15,
-        y: 24,
+        x: 18,
+        y: 27,
       },
     ];
   }
@@ -454,6 +454,7 @@
           </div>
           <div class="team-orbit-layout">
             <div class="team-constellation reveal" aria-label="Sitesnap team">
+              <div class="team-orbit-glow"></div>
               <div class="team-ring ring-one"></div>
               <div class="team-ring ring-two"></div>
               <div class="team-ring ring-three"></div>
@@ -484,8 +485,8 @@
                 .join("")}
             </div>
             <aside class="team-profile reveal" aria-live="polite">
+              <div class="team-profile-media ${profile.imageUrl ? "has-photo" : ""}" data-profile-media>${profile.imageUrl ? `<img src="${escapeHtml(profile.imageUrl)}" alt="" />` : `<span>${escapeHtml(profile.initials)}</span>`}</div>
               <span class="team-profile-kicker">Active role</span>
-              <div class="profile-avatar ${profile.imageUrl ? "has-photo" : ""}" data-profile-avatar>${profile.imageUrl ? `<img src="${escapeHtml(profile.imageUrl)}" alt="" />` : escapeHtml(profile.initials)}</div>
               <h3 data-profile-name>${escapeHtml(profile.name)}</h3>
               <strong data-profile-role>${escapeHtml(profile.role)}</strong>
               <p data-profile-bio>${escapeHtml(profile.bio)}</p>
@@ -855,7 +856,7 @@
     const section = document.querySelector("[data-team-section]");
     if (!section) return;
     const profile = {
-      avatar: section.querySelector("[data-profile-avatar]"),
+      media: section.querySelector("[data-profile-media]"),
       name: section.querySelector("[data-profile-name]"),
       role: section.querySelector("[data-profile-role]"),
       bio: section.querySelector("[data-profile-bio]"),
@@ -864,15 +865,17 @@
     const nodes = [...section.querySelectorAll("[data-team-id]")];
     const updateAvatar = (node) => {
       const imageUrl = node.dataset.memberImage;
-      profile.avatar.classList.toggle("has-photo", Boolean(imageUrl));
-      profile.avatar.textContent = "";
+      profile.media.classList.toggle("has-photo", Boolean(imageUrl));
+      profile.media.textContent = "";
       if (imageUrl) {
         const image = document.createElement("img");
         image.src = imageUrl;
         image.alt = "";
-        profile.avatar.appendChild(image);
+        profile.media.appendChild(image);
       } else {
-        profile.avatar.textContent = node.dataset.memberInitials || "?";
+        const initials = document.createElement("span");
+        initials.textContent = node.dataset.memberInitials || "?";
+        profile.media.appendChild(initials);
       }
     };
     const selectMember = (node) => {
@@ -919,13 +922,22 @@
     const generatedType = preview.querySelector("[data-hover-generated-type]");
     const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-    const setPosition = (event) => {
+    const setPosition = (event, row) => {
       const previewWidth = 350;
       const sideOffset = window.innerWidth - event.clientX < previewWidth + 46 ? -previewWidth - 28 : 28;
       const y = Math.min(window.innerHeight - 140, Math.max(150, event.clientY));
+      const rect = row.getBoundingClientRect();
+      const progress = rect.width ? Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)) : 0.5;
+      const lean = (progress - 0.5) * 44;
+      const tilt = (progress - 0.5) * 14;
+      const depth = (progress - 0.5) * -9;
       preview.style.setProperty("--x", `${event.clientX}px`);
       preview.style.setProperty("--y", `${y}px`);
       preview.style.setProperty("--dx", `${sideOffset}px`);
+      preview.style.setProperty("--lean", `${lean}px`);
+      preview.style.setProperty("--tilt", `${tilt}deg`);
+      preview.style.setProperty("--depth", `${depth}deg`);
+      preview.style.setProperty("--origin-x", `${Math.round(progress * 100)}%`);
     };
 
     const showPreview = (row, event) => {
@@ -938,7 +950,7 @@
       if (hasImage) image.src = row.dataset.previewSrc;
       rows.forEach((item) => item.classList.toggle("is-active", item === row));
       preview.classList.add("is-visible");
-      setPosition(event);
+      setPosition(event, row);
     };
 
     rows.forEach((row) => {
@@ -952,7 +964,7 @@
           showPreview(row, event);
           return;
         }
-        setPosition(event);
+        setPosition(event, row);
       });
       row.addEventListener("pointerleave", () => {
         row.classList.remove("is-active");
