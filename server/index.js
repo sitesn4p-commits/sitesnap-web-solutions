@@ -10,6 +10,15 @@ const cookieName = "sitesnap_session";
 const adminUser = process.env.ADMIN_USER || "admin";
 const adminPassword = process.env.ADMIN_PASSWORD || "sitesnap123";
 const sessionSecret = process.env.SESSION_SECRET || "dev-sitesnap-secret-change-me";
+const defaultSettings = {
+  facebookUrl: "https://www.facebook.com/share/1J8YPujnnk/",
+  instagramUrl: "https://www.instagram.com/sitesn4p?igsh=MTQzanNubmllemxzNQ==",
+  linkedinUrl: "https://lk.linkedin.com/in/site-snap-a2570b3b0",
+  teamLeadName: "Sathsara Bandara",
+  teamLeadRole: "Founder / Web Strategist",
+  teamLeadBio: "Leads project direction, client strategy, and launch quality from the first idea to the live website.",
+  teamLeadImageUrl: "",
+};
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -49,7 +58,10 @@ function sanitizeCv(value) {
 
 function publicSiteShape(db) {
   const { inquiries, subscribers, careers, ...publicData } = db;
-  return publicData;
+  return {
+    ...publicData,
+    settings: { ...defaultSettings, ...(publicData.settings || {}) },
+  };
 }
 
 function sendJson(res, status, body, headers = {}) {
