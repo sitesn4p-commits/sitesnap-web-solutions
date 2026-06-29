@@ -345,13 +345,14 @@ module.exports = async function handler(req, res) {
     }
 
     const inquiryMatch = pathname.match(/^\/api\/admin\/inquiries\/([^/]+)$/);
-    if (req.method === "PATCH" && inquiryMatch) {
+    const inquiryId = inquiryMatch?.[1] || (pathname === "/api/admin/inquiries" ? sanitize(url.searchParams.get("id"), 120) : "");
+    if (req.method === "PATCH" && inquiryId) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
       const body = await readBody(req);
       const status = sanitize(body.status, 40);
       const updated = await updateDb((db) => {
-        const inquiry = db.inquiries.find((item) => item.id === inquiryMatch[1]);
+        const inquiry = db.inquiries.find((item) => item.id === inquiryId);
         if (!inquiry) return null;
         inquiry.status = status || inquiry.status;
         inquiry.updatedAt = new Date().toISOString();
@@ -426,12 +427,13 @@ module.exports = async function handler(req, res) {
     }
 
     const serviceMatch = pathname.match(/^\/api\/admin\/services\/([^/]+)$/);
-    if (req.method === "PATCH" && serviceMatch) {
+    const serviceId = serviceMatch?.[1] || (pathname === "/api/admin/services" ? sanitize(url.searchParams.get("id"), 120) : "");
+    if (req.method === "PATCH" && serviceId) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
       const body = await readBody(req);
       const updated = await updateDb((db) => {
-        const service = (db.services || []).find((item) => item.id === serviceMatch[1]);
+        const service = (db.services || []).find((item) => item.id === serviceId);
         if (!service) return null;
         service.title = sanitize(body.title, 120) || service.title;
         service.summary = sanitize(body.summary, 240) || service.summary;
@@ -445,13 +447,16 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 200, { service: updated });
     }
 
-    if (req.method === "DELETE" && serviceMatch) {
+    if (req.method === "DELETE" && serviceId) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
-      await updateDb((db) => {
-        db.services = db.services.filter((item) => item.id !== serviceMatch[1]);
-        return true;
+      const deleted = await updateDb((db) => {
+        const services = db.services || [];
+        const nextServices = services.filter((item) => item.id !== serviceId);
+        db.services = nextServices;
+        return nextServices.length !== services.length;
       });
+      if (!deleted) return sendJson(res, 404, { message: "Service not found" });
       return sendJson(res, 200, { ok: true });
     }
 
@@ -483,7 +488,8 @@ module.exports = async function handler(req, res) {
     }
 
     const projectMatch = pathname.match(/^\/api\/admin\/projects\/([^/]+)$/);
-    if (req.method === "PATCH" && projectMatch) {
+    const projectId = projectMatch?.[1] || (pathname === "/api/admin/projects" ? sanitize(url.searchParams.get("id"), 120) : "");
+    if (req.method === "PATCH" && projectId) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
       const body = await readBody(req);
@@ -493,7 +499,7 @@ module.exports = async function handler(req, res) {
         return sendJson(res, 400, { message: "Project image must be a valid image URL or optimized image upload." });
       }
       const updated = await updateDb((db) => {
-        const project = (db.projects || []).find((item) => item.id === projectMatch[1]);
+        const project = (db.projects || []).find((item) => item.id === projectId);
         if (!project) return null;
         project.name = sanitize(body.name, 120) || project.name;
         project.type = sanitize(body.type, 80);
@@ -507,12 +513,12 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 200, { project: updated });
     }
 
-    if (req.method === "DELETE" && projectMatch) {
+    if (req.method === "DELETE" && projectId) {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
       const deleted = await updateDb((db) => {
         const projects = db.projects || [];
-        const nextProjects = projects.filter((item) => item.id !== projectMatch[1]);
+        const nextProjects = projects.filter((item) => item.id !== projectId);
         db.projects = nextProjects;
         return nextProjects.length !== projects.length;
       });

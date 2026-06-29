@@ -44,9 +44,19 @@
       headers: { "Content-Type": "application/json" },
       ...options,
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.message || "Request failed");
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (_error) {
+      data = { message: text.trim().slice(0, 140) };
+    }
+    if (!response.ok) throw new Error(data.message || `Request failed (${response.status})`);
     return data;
+  }
+
+  function adminItemEndpoint(path, id) {
+    return `${path}?id=${encodeURIComponent(id)}`;
   }
 
   function loadImage(src) {
@@ -510,7 +520,7 @@
 
     document.querySelectorAll("[data-status-id]").forEach((select) => {
       select.addEventListener("change", async () => {
-        await fetchJson(`/api/admin/inquiries/${select.dataset.statusId}`, {
+        await fetchJson(adminItemEndpoint("/api/admin/inquiries", select.dataset.statusId), {
           method: "PATCH",
           body: JSON.stringify({ status: select.value }),
         });
@@ -522,7 +532,7 @@
     document.querySelectorAll("[data-delete-service]").forEach((button) => {
       button.addEventListener("click", async () => {
         if (!window.confirm("Delete this service?")) return;
-        await fetchJson(`/api/admin/services/${button.dataset.deleteService}`, { method: "DELETE" });
+        await fetchJson(adminItemEndpoint("/api/admin/services", button.dataset.deleteService), { method: "DELETE" });
         await loadAll();
         renderShell();
       });
@@ -535,7 +545,7 @@
         button.disabled = true;
         button.innerHTML = `${svg.Trash}<span>Deleting...</span>`;
         try {
-          await fetchJson(`/api/admin/projects/${button.dataset.deleteProject}`, { method: "DELETE" });
+          await fetchJson(adminItemEndpoint("/api/admin/projects", button.dataset.deleteProject), { method: "DELETE" });
           await loadAll();
           renderShell();
         } catch (error) {
@@ -570,7 +580,7 @@
         button.disabled = true;
         button.textContent = "Saving...";
         try {
-          await fetchJson(`/api/admin/services/${form.dataset.serviceEditForm}`, {
+          await fetchJson(adminItemEndpoint("/api/admin/services", form.dataset.serviceEditForm), {
             method: "PATCH",
             body: JSON.stringify({
               title: data.title,
@@ -598,7 +608,7 @@
         message.hidden = true;
         try {
           const uploadedImage = await uploadProjectImage(data.get("imageFile"));
-          await fetchJson(`/api/admin/projects/${form.dataset.projectEditForm}`, {
+          await fetchJson(adminItemEndpoint("/api/admin/projects", form.dataset.projectEditForm), {
             method: "PATCH",
             body: JSON.stringify({
               name: data.get("name"),
