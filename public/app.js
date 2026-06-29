@@ -1,5 +1,5 @@
 (function () {
-  const logo = "/assets/sitesnap-logo.png";
+  const logo = "/assets/sitesnap-logo.png?v=20260629-logo-main";
   const root = document.getElementById("app");
 
   const fallbackSite = {

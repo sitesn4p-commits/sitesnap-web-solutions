@@ -1,5 +1,5 @@
 (function () {
-  const logo = "/assets/sitesnap-logo.png";
+  const logo = "/assets/sitesnap-logo.png?v=20260629-logo-main";
   const root = document.getElementById("admin-root");
   const statusOptions = ["new", "contacted", "quoted", "won", "closed"];
   const state = {
