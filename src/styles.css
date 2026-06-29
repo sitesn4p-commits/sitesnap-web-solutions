@@ -269,6 +269,9 @@ img {
   position: fixed;
   inset: 0;
   z-index: 100;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at 18% 18%, rgba(5, 200, 255, 0.12), transparent 30%),
     linear-gradient(135deg, #03060d 0%, #071226 48%, #03050a 100%);
@@ -277,7 +280,8 @@ img {
 }
 
 .mobile-menu-panel {
-  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   width: min(100%, 980px);
   margin: 0 auto;
   background: transparent;

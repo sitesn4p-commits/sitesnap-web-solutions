@@ -268,18 +268,18 @@
           </div>
           <button class="icon-button menu-button" type="button" id="open-menu" aria-label="Open menu">${icon("Menu")}</button>
         </div>
-        <div class="mobile-menu" id="mobile-menu" hidden>
-          <div class="mobile-menu-panel">
-            <div class="mobile-menu-top">
-              <img src="${logo}" alt="Sitesnap Web Solutions" />
-              <button class="icon-button" type="button" id="close-menu" aria-label="Close menu">${icon("X")}</button>
-            </div>
-            <form class="mobile-search service-search" action="/services">${icon("Search")}<input name="search" aria-label="Search services" placeholder="Search services" /></form>
-            <nav aria-label="Mobile navigation">${nav}</nav>
-            <a class="primary-pill wide" href="/contact">Start a Project</a>
-          </div>
-        </div>
       </header>
+      <div class="mobile-menu" id="mobile-menu" hidden>
+        <div class="mobile-menu-panel">
+          <div class="mobile-menu-top">
+            <img src="${logo}" alt="Sitesnap Web Solutions" />
+            <button class="icon-button" type="button" id="close-menu" aria-label="Close menu">${icon("X")}</button>
+          </div>
+          <form class="mobile-search service-search" action="/services">${icon("Search")}<input name="search" aria-label="Search services" placeholder="Search services" /></form>
+          <nav aria-label="Mobile navigation">${nav}</nav>
+          <a class="primary-pill wide" href="/contact">Start a Project</a>
+        </div>
+      </div>
     `;
   }
 
