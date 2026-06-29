@@ -120,6 +120,26 @@
     return `<span class="section-tag">${escapeHtml(text)}</span>`;
   }
 
+  function isExternalUrl(value) {
+    return /^https?:\/\//i.test(String(value || "").trim());
+  }
+
+  function projectHref(project) {
+    return isExternalUrl(project.websiteUrl) ? project.websiteUrl : "/contact";
+  }
+
+  function fallbackPreviewMarkup(project) {
+    const bars = [72, 48, 86, 62];
+    return `
+      <div class="generated-screen">
+        <div class="generated-top"><span></span><span></span><span></span></div>
+        <strong>${escapeHtml(project.name)}</strong>
+        <small>${escapeHtml(project.type || "Website")}</small>
+        <div class="generated-lines">${bars.map((bar) => `<i style="width:${bar}%"></i>`).join("")}</div>
+      </div>
+    `;
+  }
+
   async function fetchJson(url, options) {
     const response = await fetch(url, {
       headers: { "Content-Type": "application/json" },
@@ -412,6 +432,7 @@
 
   function renderWork(projects, industries, options = {}) {
     const strip = industries.concat(industries);
+    const categories = [...new Set(projects.map((project) => project.type).filter(Boolean))].slice(0, 5);
     return `
       <section id="work" class="section work-section ${options.dark ? "work-section-dark" : ""}">
         <div class="container">
@@ -420,20 +441,53 @@
             <h2>Project styles we can shape around your business.</h2>
             <p>These examples show the type of digital experiences Sitesnap can plan, design, and build for different industries.</p>
           </div>
-          <div class="project-grid">
+          <div class="work-filter-strip reveal" aria-label="Project filters">
+            <button class="is-active" type="button" data-work-filter="all">All <span>${projects.length}</span></button>
+            ${categories.map((category) => `<button type="button" data-work-filter="${escapeHtml(category)}">${escapeHtml(category)} <span>${projects.filter((project) => project.type === category).length}</span></button>`).join("")}
+          </div>
+          <div class="work-list">
             ${projects
-              .map(
-                (project) => `
-                  <article class="project-card reveal">
-                    <div class="project-preview">
-                      <span>${escapeHtml(project.type)}</span>
-                      <div class="preview-window"><div></div><div></div><div></div></div>
+              .map((project, index) => {
+                const href = projectHref(project);
+                const external = isExternalUrl(href);
+                return `
+                  <article
+                    class="work-row reveal"
+                    data-work-card
+                    data-work-type="${escapeHtml(project.type || "Website")}"
+                    data-preview-src="${escapeHtml(project.imageUrl || "")}"
+                    data-preview-title="${escapeHtml(project.name)}"
+                    data-preview-type="${escapeHtml(project.type || "Website")}"
+                    data-preview-link="${escapeHtml(href)}"
+                  >
+                    <span class="work-index">${String(index + 1).padStart(2, "0")}</span>
+                    <a class="work-title" href="${escapeHtml(href)}" ${external ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(project.name)}</a>
+                    <p>${escapeHtml(project.summary)}</p>
+                    <span class="work-meta">${escapeHtml(project.type || "Website")}</span>
+                    <strong>${escapeHtml(project.result || "Launch-ready")}</strong>
+                    <span class="work-arrow" aria-hidden="true">${icon("ArrowUpRight")}</span>
+                    <div class="work-inline-preview" aria-hidden="true">
+                      ${project.imageUrl ? `<img src="${escapeHtml(project.imageUrl)}" alt="" loading="lazy" />` : fallbackPreviewMarkup(project)}
                     </div>
-                    <div class="project-body"><h3>${escapeHtml(project.name)}</h3><p>${escapeHtml(project.summary)}</p><strong>${escapeHtml(project.result)}</strong></div>
                   </article>
-                `
-              )
+                `;
+              })
               .join("")}
+          </div>
+          <div class="work-hover-preview" aria-hidden="true">
+            <span class="work-hover-cursor"></span>
+            <div class="work-hover-card">
+              <div class="work-hover-screen">
+                <img data-hover-image alt="" />
+                <div class="generated-screen">
+                  <div class="generated-top"><span></span><span></span><span></span></div>
+                  <strong data-hover-generated-title>Sitesnap Work</strong>
+                  <small data-hover-generated-type>Website</small>
+                  <div class="generated-lines"><i style="width:72%"></i><i style="width:48%"></i><i style="width:86%"></i><i style="width:62%"></i></div>
+                </div>
+              </div>
+              <div class="work-hover-caption"><span data-hover-type>Website</span><strong data-hover-title>Selected Work</strong></div>
+            </div>
           </div>
           <div class="industry-strip" aria-label="Industries">${strip.map((industry) => `<span>${escapeHtml(industry)}</span>`).join("")}</div>
           ${options.compact ? `<div class="section-action reveal"><a class="primary-pill large" href="/portfolio">View Portfolio ${icon("ArrowRight")}</a></div>` : ""}
@@ -713,6 +767,75 @@
     footer.addEventListener("pointerleave", () => footer.classList.remove("is-watermark-active"));
   }
 
+  function bindWorkPreview() {
+    const preview = document.querySelector(".work-hover-preview");
+    const rows = [...document.querySelectorAll("[data-work-card]")];
+    if (!preview || !rows.length) return;
+
+    const image = preview.querySelector("[data-hover-image]");
+    const title = preview.querySelector("[data-hover-title]");
+    const type = preview.querySelector("[data-hover-type]");
+    const generatedTitle = preview.querySelector("[data-hover-generated-title]");
+    const generatedType = preview.querySelector("[data-hover-generated-type]");
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+    const setPosition = (event) => {
+      const previewWidth = 350;
+      const sideOffset = window.innerWidth - event.clientX < previewWidth + 46 ? -previewWidth - 28 : 28;
+      const y = Math.min(window.innerHeight - 140, Math.max(150, event.clientY));
+      preview.style.setProperty("--x", `${event.clientX}px`);
+      preview.style.setProperty("--y", `${y}px`);
+      preview.style.setProperty("--dx", `${sideOffset}px`);
+    };
+
+    const showPreview = (row, event) => {
+      const hasImage = Boolean(row.dataset.previewSrc);
+      title.textContent = row.dataset.previewTitle || "Selected Work";
+      type.textContent = row.dataset.previewType || "Website";
+      generatedTitle.textContent = row.dataset.previewTitle || "Selected Work";
+      generatedType.textContent = row.dataset.previewType || "Website";
+      preview.classList.toggle("has-image", hasImage);
+      if (hasImage) image.src = row.dataset.previewSrc;
+      rows.forEach((item) => item.classList.toggle("is-active", item === row));
+      preview.classList.add("is-visible");
+      setPosition(event);
+    };
+
+    rows.forEach((row) => {
+      row.addEventListener("pointerenter", (event) => {
+        if (!finePointer.matches) return;
+        showPreview(row, event);
+      });
+      row.addEventListener("pointermove", (event) => {
+        if (!finePointer.matches) return;
+        if (!preview.classList.contains("is-visible") || !row.classList.contains("is-active")) {
+          showPreview(row, event);
+          return;
+        }
+        setPosition(event);
+      });
+      row.addEventListener("pointerleave", () => {
+        row.classList.remove("is-active");
+        preview.classList.remove("is-visible");
+      });
+    });
+  }
+
+  function bindWorkFilters() {
+    const buttons = [...document.querySelectorAll("[data-work-filter]")];
+    const rows = [...document.querySelectorAll("[data-work-card]")];
+    if (!buttons.length || !rows.length) return;
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const filter = button.dataset.workFilter;
+        buttons.forEach((item) => item.classList.toggle("is-active", item === button));
+        rows.forEach((row) => {
+          row.hidden = filter !== "all" && row.dataset.workType !== filter;
+        });
+      });
+    });
+  }
+
   function bindContactForm() {
     const form = document.getElementById("contact-form");
     if (!form) return;
@@ -758,6 +881,8 @@
     bindReveal();
     bindTeamOrbit();
     bindFooterWatermark();
+    bindWorkPreview();
+    bindWorkFilters();
     bindContactForm();
     scrollToHash();
   }

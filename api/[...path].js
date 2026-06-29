@@ -10,6 +10,19 @@ function sanitize(value, max = 500) {
   return String(value || "").trim().slice(0, max);
 }
 
+function sanitizeUrl(value, max = 360) {
+  const text = sanitize(value, max);
+  return /^https?:\/\//i.test(text) ? text : "";
+}
+
+function sanitizeImage(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^https?:\/\//i.test(text)) return text.slice(0, 1000);
+  if (/^data:image\/(png|jpe?g|webp);base64,/i.test(text) && text.length <= 1100000) return text;
+  return "";
+}
+
 function publicSiteShape(db) {
   const { inquiries, subscribers, ...publicData } = db;
   return publicData;
@@ -275,14 +288,20 @@ module.exports = async function handler(req, res) {
     if (req.method === "POST" && pathname === "/api/admin/projects") {
       const admin = requireAdmin(req, res);
       if (!admin) return null;
-      const body = await readBody(req);
-      const project = {
-        id: crypto.randomUUID(),
-        name: sanitize(body.name, 120),
-        type: sanitize(body.type, 80),
-        summary: sanitize(body.summary, 260),
-        result: sanitize(body.result, 120),
-      };
+    const body = await readBody(req);
+    const imageUrl = sanitizeImage(body.imageUrl);
+    if (body.imageUrl && !imageUrl) {
+      return sendJson(res, 400, { message: "Project image must be a valid image URL or optimized image upload." });
+    }
+    const project = {
+      id: crypto.randomUUID(),
+      name: sanitize(body.name, 120),
+      type: sanitize(body.type, 80),
+      summary: sanitize(body.summary, 260),
+      result: sanitize(body.result, 120),
+      websiteUrl: sanitizeUrl(body.websiteUrl),
+      imageUrl,
+    };
       if (!project.name || !project.summary) {
         return sendJson(res, 400, { message: "Project name and summary are required." });
       }

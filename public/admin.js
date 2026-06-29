@@ -47,6 +47,42 @@
     return data;
   }
 
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Could not read the selected image."));
+      image.src = src;
+    });
+  }
+
+  async function compressProjectImage(file) {
+    if (!file || !file.size) return "";
+    if (!file.type.startsWith("image/")) {
+      throw new Error("Please choose an image file for the project screenshot.");
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const image = await loadImage(objectUrl);
+      const maxWidth = 1200;
+      const maxHeight = 760;
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+      if (dataUrl.length > 1100000) {
+        throw new Error("That screenshot is still too large. Please choose a smaller image.");
+      }
+      return dataUrl;
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
   function statusPill(status) {
     return `<span class="status-pill status-${escapeHtml(status)}">${escapeHtml(status)}</span>`;
   }
@@ -226,8 +262,13 @@
               ${projects
                 .map(
                   (project) => `
-                    <article>
-                      <div><strong>${escapeHtml(project.name)}</strong><p>${escapeHtml(project.summary)}</p></div>
+                    <article class="content-project-row">
+                      <div class="project-admin-thumb">${project.imageUrl ? `<img src="${escapeHtml(project.imageUrl)}" alt="" />` : svg.Dashboard}</div>
+                      <div>
+                        <strong>${escapeHtml(project.name)}</strong>
+                        <p>${escapeHtml(project.summary)}</p>
+                        <small>${escapeHtml(project.type || "Website")} ${project.websiteUrl ? `- ${escapeHtml(project.websiteUrl)}` : ""}</small>
+                      </div>
                       <button class="danger-button" type="button" data-delete-project="${escapeHtml(project.id)}" aria-label="Delete project">${svg.Trash}</button>
                     </article>
                   `
@@ -240,7 +281,15 @@
               <input name="type" placeholder="Type" />
               <textarea name="summary" placeholder="Summary" required></textarea>
               <input name="result" placeholder="Result" />
+              <input name="websiteUrl" type="url" placeholder="Website link (https://example.com)" />
+              <input name="imageUrl" placeholder="Preview image URL (optional)" />
+              <label class="project-upload-field">
+                <input id="project-image-file" name="imageFile" type="file" accept="image/*" />
+                <span>Upload website screenshot</span>
+                <small id="project-file-note">PNG, JPG, or WebP. The image will be optimized before saving.</small>
+              </label>
               <button class="admin-primary" type="submit">${svg.Plus} Add project</button>
+              <p class="admin-message error" data-project-message hidden></p>
             </form>
           </section>
         </div>
@@ -369,13 +418,42 @@
 
     document.getElementById("project-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-      await fetchJson("/api/admin/projects", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      await loadAll();
-      renderShell();
+      const form = event.currentTarget;
+      const message = form.querySelector("[data-project-message]");
+      const button = form.querySelector("button");
+      const data = new FormData(form);
+      button.disabled = true;
+      button.textContent = "Saving...";
+      message.hidden = true;
+      try {
+        const uploadedImage = await compressProjectImage(data.get("imageFile"));
+        await fetchJson("/api/admin/projects", {
+          method: "POST",
+          body: JSON.stringify({
+            name: data.get("name"),
+            type: data.get("type"),
+            summary: data.get("summary"),
+            result: data.get("result"),
+            websiteUrl: data.get("websiteUrl"),
+            imageUrl: uploadedImage || data.get("imageUrl"),
+          }),
+        });
+        await loadAll();
+        renderShell();
+      } catch (error) {
+        message.textContent = error.message;
+        message.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.innerHTML = `${svg.Plus} Add project`;
+      }
+    });
+
+    document.getElementById("project-image-file")?.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      const note = document.getElementById("project-file-note");
+      if (!note) return;
+      note.textContent = file ? `${file.name} selected - ${(file.size / 1024 / 1024).toFixed(2)} MB` : "PNG, JPG, or WebP. The image will be optimized before saving.";
     });
 
     document.getElementById("settings-form")?.addEventListener("submit", async (event) => {
